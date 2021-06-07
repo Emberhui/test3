@@ -2,8 +2,8 @@
 // 返回值：promiss对象（异步返回的数据是：response.data）
 import axios from 'axios'
 export default function ajax(url, data = {}, type = 'GET') {
-    return new Promiss(function (resolve, reject) {
-        let promiss
+    return new Promise(function (resolve, reject) {
+        let promise
         if (type === 'GET') {
             // 准备url、query参数数据
             let dataStr = ''  //数据拼接字符串
@@ -15,12 +15,12 @@ export default function ajax(url, data = {}, type = 'GET') {
                 url = url + '?' + dataStr
             }
             // 发送get请求
-            promiss = axios.get(url)
+            promise = axios.get(url)
         }else{
             // 发送post请求
-            promiss = axios.post(url)
+            promise = axios.post(url)
         }
-        promiss.then(function (response) {
+        promise.then(function (response) {
             resolve(response.data)
         })
         .catch(function (error) {
