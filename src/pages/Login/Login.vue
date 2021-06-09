@@ -9,14 +9,17 @@
           </div>
         </div>
         <div class="login_content">
-          <form>
+          <form @submit.prevent="login">
             <div :class="{on: loginWay}">
               <section class="login_message">
-                <input type="tel" maxlength="11" placeholder="手机号" v-model="phone">
-                <button disabled="disabled" class="get_verification" :class="{right_phone: rightPhone}" >获取验证码</button>
+                <input type="text" maxlength="11" placeholder="手机号" v-model="phone">
+                <button :disabled="!rightPhone" class="get_verification" 
+                        :class="{right_phone: rightPhone}" @click.prevent="getCode">
+                  {{countTime ?  `已发送(${countTime}s)` : '获取验证码'}}
+                  </button>
               </section>
               <section class="login_verification">
-                <input type="tel" maxlength="8" placeholder="验证码">
+                <input type="text" maxlength="8" placeholder="验证码" v-model="code">
               </section>
               <section class="login_hint">
                 温馨提示：未注册硅谷外卖帐号的手机号，登录时将自动注册，且代表已同意
@@ -26,18 +29,20 @@
             <div :class="{on: !loginWay}">
               <section>
                 <section class="login_message">
-                  <input type="tel" maxlength="11" placeholder="手机/邮箱/用户名" >
+                  <input type="text" maxlength="11" placeholder="手机/邮箱/用户名" v-model="name">
                 </section>
                 <section class="login_verification">
-                  <input type="tel" maxlength="8" placeholder="密码">
-                  <div class="switch_button off">
-                    <div class="switch_circle"></div>
-                    <span class="switch_text">...</span>
+                  <input type="password" maxlength="8" placeholder="密码" v-if="!showPwd" v-model="pwd">
+                  <input type="text" maxlength="8" placeholder="密码" v-else v-model="pwd">
+                  <div class="switch_button" :class="showPwd ? 'on': 'off'"  @click="showPwd = !showPwd">
+                    <div class="switch_circle" :class="{right: showPwd}"></div>
+                    <span class="switch_text">{{showPwd ? 'abc' : ''}}</span>
                   </div>
                 </section>
                 <section class="login_message">
-                  <input type="text" maxlength="11" placeholder="验证码">
-                  <img class="get_verification" src="./images/captcha.svg" alt="captcha">
+                  <input type="text" maxlength="11" placeholder="验证码" v-model="captcha">
+                  <img class="get_verification" src="http://localhost:4000/captcha" alt="captcha"
+                       @click="getCaptcha" ref="captcha">
                 </section>
               </section>
             </div>
@@ -49,21 +54,105 @@
           <i class="iconfont icon-jiantou2"></i>
         </a>
       </div>
+      <AlertTip :alertText="alertText" v-show="alertShow" @closeTip="closeTip"></AlertTip>
     </section>
 </template>
 
 <script>
+import AlertTip from '../../components/AlertTip/AlertTip.vue'
+import {reqPwdLogin,reqSendCode,reqSmsLogin} from '../../api'
+
 export default {
     data() {
       return {
-        loginWay: true ,   //true 代表短信登录  false 代表账号密码登录
-        phone: ''
+        loginWay: true,   //true 代表短信登录  false 代表账号密码登录
+        phone: '',       // 手机号
+        countTime: 0,      // 倒计时时间
+        pwd: '',         //密码
+        showPwd: false,   //是否显示密码
+        code: '',        //验证码
+        name: '',         //用户名
+        captcha: '',     //图形验证码
+        alertText: '',   //提示文本
+        alertShow: false, //是否显示警告框
       }
     },
     computed: {
       rightPhone () {
         return /^1\d{10}$/.test(this.phone)
       },
+    },
+    methods: {
+      // 异步获取短信验证码
+     async getCode () {
+        // 如果当前没有计时
+        if (!this.countTime) {
+          // 启动倒计时
+         this.countTime  = 30 
+         this.intevalId = setInterval(() => {
+           this.countTime--
+          if (this.countTime <= 0) {
+            // 停止计时
+            clearInterval(this.intevalId)
+          }
+        },1000)
+        
+        // 发送ajax请求(向指定手机号发送验证码短信)
+        const result = await reqSendCode(this.phone)
+        // 发送短信失败
+        if (result.code === 1) {
+          // 显示提示框
+          this.showAlert(result.msg)
+          // 停止计时
+          if (this.countTime) {
+            this.countTime = 0
+            clearInterval(this.intevalId)
+            this.intevalId = undefined
+
+           }
+          }
+        }
+        
+      },
+      // 异步登录 
+      login () {
+        // 短信登录
+        if (this.loginWay) {
+          const {rightPhone,phone,code} = this
+          if (!this.rightPhone) {
+            this.showAlert("手机号不正确")
+          }else if (!/^\d{6}$/.test(code)) {
+            this.showAlert("验证码不正确")
+          }
+        }else{
+          // 密码登录
+          const {name,pwd,captcha} = this
+          if (!this.name) {
+            this.showAlert("账号或用户名不正确")
+          }else if (!this.pwd) {
+            this.showAlert("密码不正确")
+          }else if (!this.captcha) {
+            this.showAlert("图形验证码不正确")
+          }
+        }
+      },
+      showAlert (alertText) {
+        this.alertShow = true
+        this.alertText = alertText
+      },
+      // 关闭警告框
+      closeTip () {
+        this.alertShow = false
+        this.alertText = ''
+      },
+      // 获取新的一次性图形验证码
+      getCaptcha () {
+        // 每次指定的src要不一样
+        this.$refs.captcha.src = "http://localhost:4000/captcha?time=" + Date.now()
+      },
+    },
+    components: {
+      AlertTip
     }
 }
 </script>
@@ -159,7 +248,6 @@ export default {
                   &.on
                     background #02a774
                   >.switch_circle
-                    //transform translateX(27px)
                     position absolute
                     top -1px
                     left -1px
@@ -170,6 +258,8 @@ export default {
                     background #fff
                     box-shadow 0 2px 4px 0 rgba(0,0,0,.1)
                     transition transform .3s
+                    &.right
+                      transform translateX(27px) 
               .login_hint
                 margin-top 12px
                 color #999
