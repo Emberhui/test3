@@ -3,7 +3,8 @@
 import {
     RECEIVE_ADDRESS,
     RECEIVE_CATEGORYS,
-    RECEIVE_SHOPS
+    RECEIVE_SHOPS,
+    RECEIVE_USER_INFO
 } from './mutation-types'
 
 import {reqAddress,
@@ -44,4 +45,8 @@ export default {
             commit (RECEIVE_SHOPS,{shops})
         }
     },
+    // 同步记录用户信息，判断是否异步看是否得到对应信息，是否需要通过后台获取数据
+    recordUser({commit},userInfo) {
+        commit(RECEIVE_USER_INFO,{userInfo})
+    }
 }

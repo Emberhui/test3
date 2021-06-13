@@ -115,27 +115,55 @@ export default {
         
       },
       // 异步登录 
-      login () {
+      async login () {
+        let result
         // 短信登录
         if (this.loginWay) {
           const {rightPhone,phone,code} = this
           if (!this.rightPhone) {
             this.showAlert("手机号不正确")
+            return
           }else if (!/^\d{6}$/.test(code)) {
             this.showAlert("验证码不正确")
+            return
           }
+          this.result = await reqSmsLogin(phone,code)
         }else{
           // 密码登录
           const {name,pwd,captcha} = this
           if (!this.name) {
             this.showAlert("账号或用户名不正确")
+            return
           }else if (!this.pwd) {
             this.showAlert("密码不正确")
+            return
           }else if (!this.captcha) {
             this.showAlert("图形验证码不正确")
+            return
           }
+          this.result = await reqPwdLogin({name,pwd,captcha})
         }
+        // 停止计时
+          if (this.countTime) {
+            this.countTime = 0
+            clearInterval(this.intevalId)
+            this.intevalId = undefined
+           }
+
+          if (result.code === 0) {
+            const user = result.data
+            // 将user保存到vuex的state
+            this.$store.dispatch('recordUser',user)
+            // 去个人中心界面
+            this.$router.replace('/profile')
+          } else {
+            const msg = result.msg
+            this.getCaptcha()            
+            this.showAlert(msg)
+          }
+          
       },
+      // 弹出警示框
       showAlert (alertText) {
         this.alertShow = true
         this.alertText = alertText
