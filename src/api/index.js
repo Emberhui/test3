@@ -30,4 +30,14 @@ export const reqUserInfo = () => ajax(BASE_URL+'/userinfo')
 // 用户登出
 export const reqLogout = () => ajax(BASE_URL+'/logout')
 
+
+// 不需要代理不要加/api
+// 接收商品数组
+export const reqGoods = () => ajax('/goods')
+
+// 接收商家评价数组
+export const reqRatings = () => ajax('/ratings')
+
+// 接收商家信息
+export const reqInfo = () => ajax('/info')
  

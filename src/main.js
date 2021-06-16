@@ -6,6 +6,8 @@ import router from './router'
 import store from './store'
 import {Button} from 'mint-ui'
 
+import './mock/mockServer'   //加载mockServer即可
+
 Vue.config.productionTip = false
 
 Vue.component(Button.name,Button)
