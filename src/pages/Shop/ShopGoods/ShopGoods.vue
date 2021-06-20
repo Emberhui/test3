@@ -2,7 +2,7 @@
   <div>
     <div class="goods">
       <div class="menu-wrapper">
-        <ul>
+        <ul ref="foodsMenuUl">
           <!--current-->
           <!--currentIndex-->
           <li
@@ -32,6 +32,7 @@
                 class="food-item bottom-border-1px"
                 v-for="(food, index) in good.foods"
                 :key="index"
+                @click="showFood(food)"
               >
                 <div class="icon">
                   <img width="57" height="57" :src="food.icon" />
@@ -49,20 +50,28 @@
                       >￥{{ food.oldPrice }}</span
                     >
                   </div>
-                  <div class="cartcontrol-wrapper">CartControl</div>
+                  <div class="cartcontrol-wrapper">
+                    <CartControl :food="food"/>
+                  </div>
                 </div>
               </li>
             </ul>
           </li>
         </ul>
       </div>
+      <ShopCart></ShopCart>
     </div>
+    <Food :food="food" ref="food"></Food>
   </div>
 </template>
 
 <script>
 import {mapState} from 'vuex';
 import BScroll from 'better-scroll'
+import CartControl from '../../../components/CartControl/CartControl.vue'
+import Food from '../../../components/Food/Food.vue'
+import ShopCart from '../../../components/ShopCart/ShopCart.vue'
+
 export default {
     data() {
       return {
@@ -79,6 +88,7 @@ export default {
         })
       })
     },
+    
     computed: {
       ...mapState(['goods']),
       // 计算得到当前下标
@@ -99,6 +109,7 @@ export default {
       _initScroll () {
          //列表显示之后创建
           this.menuScroll = new BScroll('.menu-wrapper',{
+            probeType: 2,
             click: true
           }) 
           this.foodsScroll = new BScroll('.foods-wrapper',{
@@ -141,8 +152,21 @@ export default {
         this.scrollY = scrollY
         // 平滑滚动右侧列表
         this.foodsScroll.scrollTo(0, -scrollY,300)
+      },
+
+      // 显示点击的food
+      showFood (food) {
+        // 设置food
+        this.food = food
+        // 显示food组件 (在父组件中调用子组件对象的方法)
+        this.$refs.food.toggleShow()
       }
-      
+    },
+
+    components: {
+      CartControl,
+      Food,
+      ShopCart
     },
 };
 </script>
