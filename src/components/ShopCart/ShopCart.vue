@@ -2,7 +2,7 @@
    <div>
     <div class="shopcart">
       <div class="content">
-        <div class="content-left">
+        <div class="content-left" @click="toggleShow">
           <div class="logo-wrapper">
             <div class="logo" :class="{highlight: totalCount}">
               <i class="iconfont icon-shopping_cart" :class="{highlight: totalCount}"></i>
@@ -22,7 +22,7 @@
         <div class="shopcart-list" v-show="listShow">
           <div class="list-header">
             <h1 class="title">购物车</h1>
-            <span class="empty">清空</span>
+            <span class="empty" @click="clearCart">清空</span>
           </div>
           <div class="list-content">
             <ul>
@@ -39,15 +39,22 @@
       </transition>
 
     </div>
-    <div class="list-mask" v-show="listShow"></div>
+    <div class="list-mask" v-show="listShow" @click="toggleShow"></div>
   </div>
 </template>
 
 <script>
 import {mapState,mapGetters} from 'vuex';
 import CartControl from '../CartControl/CartControl.vue'
+import BScroll from 'better-scroll'
+import {MessageBox} from 'mint-ui'
 
 export default {
+    data() {
+        return {
+            isShow: false
+        }
+    },
     computed: {
         ...mapState(['cartFoods','info']),
         ...mapGetters(['totalCount','totalPrice']),
@@ -66,6 +73,40 @@ export default {
             } else {
                 return '结算'
             }
+        },
+        listShow () {
+            // 总数量为0则直接不显示 
+            if (this.totalCount === 0) {
+                this.isShow = false
+                return false
+            }
+            if (this.isShow) {
+                this.$nextTick(() => {
+                    // 实现BScroll的实例是一个单例
+                    if (!this.scroll) {
+                        this.scroll = new BScroll('.list-content',{
+                            click: true
+                        })
+                    }else{
+                        this.scroll.refresh()  //让滚动条刷新一下：重新统计内容的高度
+                    }
+                })
+            }
+                // 其他情况看isShow状态
+                return this.isShow
+        },
+    },
+    methods: {
+        toggleShow () {
+            // 只有总数量大于0时才切换
+            if (this.totalCount > 0) {
+                this.isShow = !this.isShow
+            }
+        },
+        clearCart () {
+            MessageBox.confirm('确定清空购物车吗?').then(action => {
+              this.$store.dispatch('clearCart')
+          }, () =>  {});
         }
     },
     components: {
@@ -185,7 +226,7 @@ export default {
       width 100%
       transform translateY(-100%)
       &.move-enter-active, &.move-leave-active
-        transition transform .3s
+        transition transform .5s
       &.move-enter, &.move-leave-to
         transform translateY(0)
       .list-header
