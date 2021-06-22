@@ -88,11 +88,13 @@ export default {
         }
     },
     // 异步获取商家评价
-    async getRatings({commit}) {
+    async getRatings({commit},callback) {
         const result = await reqRatings()
         if (result.code === 0) {
             const ratings = result.data
             commit(RECEIVE_RATINGS,{ratings})
+            //数据更新了，通知一下组件
+            callback && callback()
         }
     },
     // 异步获取商家信息

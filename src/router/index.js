@@ -64,10 +64,10 @@ export default new Router({
           path: '/shop/info',
           component: ShopInfo
         },
-        {
-          path: '',
-          redirect: '/shop/goods'
-        },
+        // {
+        //   path: '',
+        //   redirect: '/shop/goods'
+        // },
       ]
     },
     {
