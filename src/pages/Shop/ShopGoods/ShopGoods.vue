@@ -2,7 +2,7 @@
   <div>
     <div class="goods">
       <div class="menu-wrapper">
-        <ul ref="foodsMenuUl">
+        <ul>
           <!--current-->
           <!--currentIndex-->
           <li

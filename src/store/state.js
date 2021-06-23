@@ -10,4 +10,5 @@ export default {
     ratings: [],  //商家评价数组
     info: {},  //商家信息对象
     cartFoods: [], //购物车食品列表
+    searchShops: [], //搜索的商家列表
 }
